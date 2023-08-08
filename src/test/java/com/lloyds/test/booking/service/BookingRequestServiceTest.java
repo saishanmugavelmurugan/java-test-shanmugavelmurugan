@@ -9,6 +9,8 @@ import com.lloyds.test.booking.utils.BookingRequestUtils;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -25,7 +27,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 public class BookingRequestServiceTest {
-
     BookingRequestServiceImpl bookingRequestService  =new BookingRequestServiceImpl(new BookingRequestUtils());
 
     @Test
@@ -42,6 +43,56 @@ public class BookingRequestServiceTest {
         assertEquals(2,bookingResponse.get(0).getBookings().size());
 
     }
+
+    @Test
+    public void processBookingRequestText_WhenValidBookingReqWithMultipleDatesGiven_ThenReturnMeetingRequest(){
+        String text="0800 1730\n" +
+                "2020-01-18 10:17:06 EMP001\n" +
+                "2020-01-21 09:00 2\n" +
+                "2020-01-18 12:34:56 EMP002\n" +
+                "2020-01-21 09:10 2\n" +
+                "2020-01-18 12:34:51 EMP003\n" +
+                "2020-01-21 08:00 1\n" +
+                "2020-01-18 12:34:53 EMP004\n" +
+                "2020-01-21 11:00 1\n" +
+                "2020-01-18 12:34:55 EMP005\n" +
+                "2020-01-21 12:00 1\n" +
+                "2020-01-18 10:17:09 EMP006\n" +
+                "2020-01-21 12:00 2\n" +
+                "2020-01-18 10:17:07 EMP007\n" +
+                "2020-01-21 14:00 2\n" +
+                "2020-01-18 10:17:06 EMP001\n" +
+                "2020-01-22 09:00 2\n" +
+                "2020-01-18 12:34:56 EMP002\n" +
+                "2020-01-22 09:10 2\n" +
+                "2020-01-18 12:34:51 EMP003\n" +
+                "2020-01-22 08:00 1\n" +
+                "2020-01-18 12:34:53 EMP004\n" +
+                "2020-01-22 11:00 1\n" +
+                "2020-01-18 12:34:55 EMP005\n" +
+                "2020-01-22 12:00 1\n" +
+                "2020-01-18 10:17:09 EMP006\n" +
+                "2020-01-22 12:00 2\n" +
+                "2020-01-18 10:17:07 EMP007\n" +
+                "2020-01-22 14:00 2\n" +
+                "2020-01-18 10:17:06 EMP001\n" +
+                "2020-01-23 09:00 2\n" +
+                "2020-01-18 12:34:56 EMP002\n" +
+                "2020-01-23 09:10 2\n" +
+                "2020-01-18 12:34:51 EMP003\n" +
+                "2020-01-23 08:00 1\n" +
+                "2020-01-18 12:34:51 EMP004\n" +
+                "2020-01-22 11:00 1\n" +
+                "2020-01-18 12:34:55 EMP005\n" +
+                "2020-01-24 12:00 1\n" +
+                "2020-01-18 10:17:09 EMP006\n" +
+                "2020-01-25 12:00 2\n" +
+                "2020-01-18 10:17:07 EMP007\n" +
+                "2020-01-26 14:00 2";
+        List<BookingResponse> bookingResponse = this.bookingRequestService.processBookingRequestText(text);
+        assertEquals(6,bookingResponse.size());
+    }
+
 
     @Test
     public void processBookingRequestText_WhenInValidBookingReqGiven_ThenThrowInvalidOfficeHoursException(){
