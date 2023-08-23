@@ -18,6 +18,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static com.lloyds.test.booking.constants.BookingConstants.*;
@@ -64,6 +65,27 @@ public class BookingRequestServiceImpl implements BookingRequestService {
         return finalList.entrySet().stream().map(entry -> new BookingResponse(entry.getKey().toString(), entry.getValue())).toList();
     }
 
+
+    private Map<LocalDate, List<Bookings>> removeOverlappingv1(Map<LocalDate, List<BookingRequest>> booking){
+        Map<LocalDate, List<Bookings>> filnalMap = new HashMap<>();
+        for (Map.Entry<LocalDate, List<BookingRequest>> entry : booking.entrySet()) {
+            Set<BookingRequest> overlappingList= IntStream.range(0, entry.getValue().size())
+                    .filter(i -> findOverlap(entry.getValue().get(i),
+                            entry.getValue().subList(0, entry.getValue().size()))).mapToObj(i->entry.getValue().get(i)).collect(Collectors.toSet());
+
+            List<Bookings> bookingsList = entry.getValue().stream().filter(req -> !overlappingList.contains(req))
+                    .map(req -> new Bookings(req.getEmployeeId(), req.getMeetingStartTime(), req.getMeetingEndTime()))
+                    .collect(Collectors.toList());
+            filnalMap.put(entry.getKey(), bookingsList);
+        }
+        return filnalMap;
+    }
+    public boolean findOverlap(final BookingRequest element, final List<BookingRequest> list) {
+
+        return list.stream().anyMatch(l-> l.getSubmissionTime().compareTo(element.getSubmissionTime())!=0 &&
+                (element.getMeetingStartTime().compareTo(l.getMeetingStartTime())>=0 && element.getMeetingStartTime().compareTo(l.getMeetingEndTime())<0? ((element.getSubmissionTime().compareTo(l.getSubmissionTime()) <= 0)? false:true):false));
+
+    }
     /**
      * Remove the overlapping meeting time intervals from the given list grouped by meeting date.
      *
@@ -76,6 +98,7 @@ public class BookingRequestServiceImpl implements BookingRequestService {
             Set<BookingRequest> overlappingList = new HashSet<>();
             for (int i = 0; i < entry.getValue().size(); i++) {
                 for (int j = 0; j < entry.getValue().size(); j++) {
+
                     if (entry.getValue().get(i).getSubmissionTime().compareTo(entry.getValue().get(j).getSubmissionTime()) != 0 &&
                             bookingRequestUtils.isValidTimeInverval(entry.getValue().get(j).getMeetingStartTime(), entry.getValue().get(j).getMeetingEndTime(), entry.getValue().get(i).getMeetingStartTime())) {
                         if (entry.getValue().get(i).getSubmissionTime().compareTo(entry.getValue().get(j).getSubmissionTime()) <= 0) {
@@ -86,7 +109,9 @@ public class BookingRequestServiceImpl implements BookingRequestService {
 
                     }
                 }
+
             }
+
             List<Bookings> bookingsList = entry.getValue().stream().filter(req -> !overlappingList.contains(req))
                     .map(req -> new Bookings(req.getEmployeeId(), req.getMeetingStartTime(), req.getMeetingEndTime()))
                     .collect(Collectors.toList());
